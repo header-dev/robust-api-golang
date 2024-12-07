@@ -1,8 +1,10 @@
 package todo
 
 import (
+	"apidemo/auth"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -14,8 +16,8 @@ type Todo struct {
 	gorm.Model
 }
 
-func (Todo) Tablename() string {
-	return "todos"
+func (Todo) TableName() string {
+	return "todolist"
 }
 
 type TodoHandler struct {
@@ -27,6 +29,15 @@ func NewTodoHandler(db *gorm.DB) *TodoHandler {
 }
 
 func (t *TodoHandler) NewTask(c *gin.Context) {
+
+	s := c.Request.Header.Get("Authorization")
+	tokenString := strings.TrimPrefix(s, "Bearer ")
+
+	if err := auth.Protect((tokenString)); err != nil {
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
 	var todo Todo
 
 	log.Println("New Task", &todo.Title)
