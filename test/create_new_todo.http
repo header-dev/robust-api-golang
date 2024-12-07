@@ -1,0 +1,7 @@
+@base_url=http://localhost:8081
+POST {{base_url}}/todo
+Content-Type: application/json
+
+{
+  "text": "Test todo1"
+}
