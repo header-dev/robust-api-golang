@@ -13,6 +13,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"golang.org/x/time/rate"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -44,7 +45,7 @@ func main() {
 			"message": "ok",
 		})
 	})
-
+	r.GET("/limit", limitedHandler)
 	r.GET("/token", auth.AccessToken(os.Getenv("SECRET")))
 
 	protect := r.Group("", auth.Protect([]byte(os.Getenv("SECRET"))))
@@ -85,4 +86,16 @@ func main() {
 	if err := s.Shutdown(timeoutCtx); err != nil {
 		fmt.Println(err)
 	}
+}
+
+var limer = rate.NewLimiter(5, 5)
+
+func limitedHandler(c *gin.Context) {
+	if !limer.Allow() {
+		c.AbortWithStatus(http.StatusTooManyRequests)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"message": "pong",
+	})
 }
