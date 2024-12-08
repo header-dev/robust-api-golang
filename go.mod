@@ -6,6 +6,7 @@ require gorm.io/gorm v1.25.12
 
 require (
 	github.com/dgrijalva/jwt-go/v4 v4.0.0-preview1 // indirect
+	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/mattn/go-sqlite3 v1.14.22 // indirect
 )
 

@@ -1,8 +1,8 @@
-@base_url=http://localhost:8080
+@base_url=http://localhost:8081
 POST {{base_url}}/todo
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzM1ODM1MzF9.bgI6b4CnULODglGGJrDjGq8294c6G5XobV5Cr33g5gc
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzM2Mzk1MTF9.SH0P5RfJSrIMXDK4Kjkjykzf4CCjG7MJWGzRbfLJrb8
 
 {
-  "text": "Test todo3"
+  "text": "Test todo4"
 }

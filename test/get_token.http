@@ -1,4 +1,4 @@
-@base_url=http://localhost:8080
+@base_url=http://localhost:8081
 GET {{base_url}}/token
 Content-Type: application/json
 

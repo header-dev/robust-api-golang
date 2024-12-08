@@ -3,13 +3,26 @@ package main
 import (
 	"apidemo/auth"
 	"apidemo/todo"
+	"context"
+	"fmt"
+	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
 func main() {
+
+	err := godotenv.Load("local.env")
+	if err != nil {
+		log.Printf("please consider environment variables: %s", err)
+	}
 
 	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
 	if err != nil {
@@ -19,16 +32,44 @@ func main() {
 	db.AutoMigrate(&todo.Todo{})
 
 	r := gin.Default()
-	r.GET("/ping", func(c *gin.Context) {
+	r.GET("/token", auth.AccessToken(os.Getenv("SECRET")))
+
+	protect := r.Group("", auth.Protect([]byte(os.Getenv("SECRET"))))
+
+	protect.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "pong",
 		})
 	})
 
-	r.GET("/token", auth.AccessToken)
-
 	handler := todo.NewTodoHandler(db)
-	r.POST("/todo", handler.NewTask)
+	protect.POST("/todo", handler.NewTask)
 
-	r.Run()
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer stop()
+
+	s := &http.Server{
+		Addr:           ":" + os.Getenv("PORT"),
+		Handler:        r,
+		ReadTimeout:    10 * time.Second,
+		WriteTimeout:   10 * time.Second,
+		MaxHeaderBytes: 1 << 20,
+	}
+
+	go func() {
+		if err := s.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatal("listen: %s\n", err)
+		}
+	}()
+
+	<-ctx.Done()
+	stop()
+	fmt.Println("shutting down gracefully, press Ctrl+C again to force")
+
+	timeoutCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := s.Shutdown(timeoutCtx); err != nil {
+		fmt.Println(err)
+	}
 }
