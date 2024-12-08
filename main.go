@@ -19,7 +19,13 @@ import (
 
 func main() {
 
-	err := godotenv.Load("local.env")
+	_, err := os.Create("/tmp/live")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer os.Remove("/tmp/live")
+
+	err = godotenv.Load("local.env")
 	if err != nil {
 		log.Printf("please consider environment variables: %s", err)
 	}
@@ -32,6 +38,13 @@ func main() {
 	db.AutoMigrate(&todo.Todo{})
 
 	r := gin.Default()
+
+	r.GET("/health", func(ctx *gin.Context) {
+		ctx.JSON(200, gin.H{
+			"message": "ok",
+		})
+	})
+
 	r.GET("/token", auth.AccessToken(os.Getenv("SECRET")))
 
 	protect := r.Group("", auth.Protect([]byte(os.Getenv("SECRET"))))
