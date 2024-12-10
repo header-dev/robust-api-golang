@@ -1,0 +1,11 @@
+@base_url=http://localhost:8081
+
+# @name tokenAPI
+GET {{base_url}}/token
+Content-Type: application/json
+###
+
+@authToken = {{tokenAPI.response.body.token}}
+GET {{base_url}}/todo
+Content-Type: application/json
+Authorization: Bearer {{authToken}}

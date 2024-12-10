@@ -11,6 +11,7 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"golang.org/x/time/rate"
@@ -42,6 +43,27 @@ func main() {
 
 	r := gin.Default()
 
+	r.Use(cors.New(cors.Config{
+		AllowOrigins: []string{"http://localhost:8080"},
+		AllowMethods: []string{"PUT", "PATCH", "GET", "POST", "DELETE"},
+		AllowHeaders: []string{
+			"Origin",
+			"Authorization",
+			"Transaction",
+		},
+	}))
+	var (
+		buildcommit = "dev"
+		buildtime   = time.Now().String()
+	)
+
+	r.GET("/x", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"buildcommit": buildcommit,
+			"buildtime":   buildtime,
+		})
+	})
+
 	r.GET("/health", func(ctx *gin.Context) {
 		ctx.JSON(200, gin.H{
 			"message": "ok",
@@ -60,6 +82,9 @@ func main() {
 
 	handler := todo.NewTodoHandler(db)
 	protect.POST("/todo", handler.NewTask)
+	protect.GET("/todo", handler.List)
+	protect.GET("/todo/:id", handler.GetById)
+	protect.DELETE("/todo/:id", handler.Remove)
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer stop()

@@ -1,3 +1,5 @@
 @base_url=http://localhost:8081
 GET {{base_url}}/token
 Content-Type: application/json
+
+> {% client.global.set("token", response.body.token); %}
